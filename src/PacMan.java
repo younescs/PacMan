@@ -1,12 +1,13 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.security.Key;
 import java.util.HashSet;
 import java.util.Random;
 import javax.swing.*;
 
 
 
-public class PacMan extends JPanel {
+public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     class Block {
         int x;
@@ -17,6 +18,9 @@ public class PacMan extends JPanel {
 
         int startX;
         int startY;
+        char direction = 'U';
+        int velocityX = 0;
+        int velocityY = 0;
 
         Block(Image image, int x, int y, int width, int height) {
             this.x = x;
@@ -28,6 +32,27 @@ public class PacMan extends JPanel {
             this.startY = y;
         }
 
+        void updateDirection(char direction){
+            this.direction = direction;
+            updateVelocity();
+        }
+
+        void updateVelocity(){
+            if (this.direction == 'U'){
+                this.velocityX = 0;
+                this.velocityY = -tileSize/4;
+            } else if (this.direction == 'D'){
+                this.velocityX = 0;
+                this.velocityY = tileSize/4;
+            } else if (this.direction == 'L'){
+                this.velocityX = -tileSize/4;
+                this.velocityY = 0;
+            } else if (this.direction == 'R'){
+                this.velocityX = tileSize/4 ;
+                this.velocityY = 0;
+            }
+        }
+        
     }
 
     private int rowCount = 21;
@@ -50,7 +75,9 @@ public class PacMan extends JPanel {
     HashSet<Block> walls;
     HashSet<Block> ghosts;
     HashSet<Block> foods;
-    Block pacman; 
+    Block pacman;
+      
+    Timer gameLoop;
 
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
@@ -82,7 +109,8 @@ public class PacMan extends JPanel {
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
-
+        addKeyListener(this);
+        setFocusable(true);
 
 
         // Load images
@@ -98,7 +126,8 @@ public class PacMan extends JPanel {
         pacmanDownImage = new ImageIcon(getClass().getResource("./pacmanDown.png")).getImage();
 
         loadMap();
-
+        gameLoop = new Timer(50, this); //20 fps (1000/50)
+        gameLoop.start();
     }
 
     public void loadMap(){
@@ -156,6 +185,31 @@ public class PacMan extends JPanel {
         }
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        repaint(); 
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {}
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        //System.out.println("Key Event: " + e.getKeyCode());
+        if (e.getKeyCode() == KeyEvent.VK_UP){
+            pacman.updateDirection('U');
+        } else if (e.getKeyCode() == KeyEvent.VK_DOWN){
+            pacman.updateDirection('D');
+        } else if (e.getKeyCode() == KeyEvent.VK_LEFT){
+            pacman.updateDirection('L');
+        } else if (e.getKeyCode() == KeyEvent.VK_RIGHT){
+            pacman.updateDirection('R');
+        }
+    }
 
 
+ 
 }
