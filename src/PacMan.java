@@ -5,8 +5,9 @@ import java.util.HashSet;
 import java.util.Random;
 import javax.swing.*;
 
-
-
+//This game has been made by following a tutorial on youtube: https://youtu.be/lB_J-VNMVpE?feature=shared
+//Future possible features: Pause the game, Scared ghosts mode, new maps, levels, etc.
+      
 public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     class Block {
@@ -63,6 +64,11 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 this.velocityX = tileSize/4 ;
                 this.velocityY = 0;
             }
+        }
+
+        void reset(){
+            this.x = this.startX;
+            this.y = this.startY;
         }
         
     }
@@ -227,12 +233,21 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         for (Block ghost: ghosts){
+            if (collision(ghost, pacman)){
+                lives -=1;
+                if (lives == 0){
+                    gameOver = true;
+                    return;
+                } 
+                resetPositions(); 
+            }
+
             if(ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D'){
                 ghost.updateDirection('U');
             }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
-            for (Block wall: walls){
+            for (Block wall: walls){ 
                 //change this to teleport to the opposite side
                 if (collision(ghost, wall) || ghost.x <=0 | ghost.x + ghost.width >= boardWidth) {
                     ghost.x -= ghost.velocityX;
@@ -253,17 +268,35 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             }
         }
         foods.remove(foodEaten);
+        //Future update: Maybe have a new map for each level
+        if (foods.isEmpty()){
+            gameOver = true;
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         move();
-        repaint(); 
+        repaint();
+        if (gameOver){
+            gameLoop.stop();
+        }
         
     }
 
     public boolean collision(Block a, Block b){
         return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+    }
+
+    public void resetPositions(){
+        pacman.reset();
+        pacman.velocityX = 0;
+        pacman.velocityY = 0;
+        for (Block ghost : ghosts){
+            ghost.reset();
+            char newDirection = directons[random.nextInt(4)];
+            ghost.updateDirection(newDirection); 
+        }
     }
 
     @Override
@@ -274,6 +307,14 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
+        if (gameOver){
+            loadMap();
+            resetPositions();
+            lives =3;
+            score = 0;
+            gameOver = false;
+            gameLoop.start();
+        }
         //System.out.println("Key Event: " + e.getKeyCode());
         if (e.getKeyCode() == KeyEvent.VK_UP){
             pacman.updateDirection('U');
